@@ -1,7 +1,10 @@
-# How to Start the SQL Backend (`server-sql`)
+# How to Set Up & Run the SQL Backend (`server-sql`) with Docker
 
-The MySQL + Sequelize backend. Same REST API and UI as the Mongo backend —
-run **one backend at a time** on port 5000.
+The MySQL + Sequelize backend. All of its Docker files live **inside the
+`server-sql/` folder** (`Dockerfile`, `.dockerignore`,
+`docker-compose.yml`), so you run it from there. The shared Angular UI
+(`client/`) is reused via a relative build path. Same REST API and UI as
+the Mongo backend — run **one backend at a time** on port 5000.
 
 > **Windows:** run npm from **Git Bash** (or use `npm.cmd`) — PowerShell
 > blocks the `.ps1` shims.
@@ -13,27 +16,23 @@ run **one backend at a time** on port 5000.
 Brings up MySQL + auto-seed + API + UI together.
 
 ```bash
-cd ~/Desktop/Mani                       # IMPORTANT: the repo ROOT, not server-sql/
-docker compose -f docker-compose.sql.yml up --build
+cd ~/Desktop/Mani/server-sql        # the SQL stack lives in this folder
+docker compose up --build
 ```
 
 - UI  → http://localhost:4200
 - API → http://localhost:5000/api/health
 
-Common gotcha: the compose file lives at the project **root**. Running it
-from inside `server-sql/` fails with
-`open ...\server-sql\docker-compose.sql.yml: The system cannot find the file`.
-Always `cd ~/Desktop/Mani` first.
-
-Manage it (from the root, in another terminal):
+Manage it (from `server-sql/`, in another terminal):
 
 ```bash
-docker compose -f docker-compose.sql.yml ps          # status of all services
-docker compose -f docker-compose.sql.yml logs -f server-sql   # API logs
-docker compose -f docker-compose.sql.yml logs seed-sql        # seed output
-docker compose -f docker-compose.sql.yml down        # stop (keep data)
-docker compose -f docker-compose.sql.yml down -v     # stop + wipe DB volume
-JWT_SECRET=$(openssl rand -hex 32) docker compose -f docker-compose.sql.yml up --build
+cd ~/Desktop/Mani/server-sql
+docker compose ps                   # status of all services
+docker compose logs -f server-sql   # API logs
+docker compose logs seed-sql        # seed output
+docker compose down                 # stop (keep data)
+docker compose down -v              # stop + wipe DB volume
+JWT_SECRET=$(openssl rand -hex 32) docker compose up --build
 ```
 
 Expected once healthy (`server-sql` logs):
@@ -58,8 +57,7 @@ docker run -d --name wecare-mysql \
   -e MYSQL_ROOT_PASSWORD=wecare \
   -e MYSQL_DATABASE=wecareforyou \
   -p 3306:3306 mysql:8
-# wait ~20-30s on first run:
-docker logs -f wecare-mysql        # until "ready for connections"
+docker logs -f wecare-mysql        # wait for "ready for connections"
 ```
 
 **2. Configure the API:**
@@ -109,7 +107,7 @@ curl http://localhost:5000/api/health
 # {"success":true,"message":"WeCareForYou API (MySQL) is running."}
 
 # Full end-to-end check (server must be running):
-node server/scripts/smoke.js          # expect all PASS
+node ~/Desktop/Mani/server/scripts/smoke.js     # expect all PASS
 ```
 
 Then start the UI and log in:
@@ -129,24 +127,44 @@ specialization lowercased with spaces → `-`.)
 
 ---
 
+## Layout (why the command is what it is)
+
+```
+server-sql/
+├── Dockerfile            # builds the API / seed image
+├── .dockerignore
+├── docker-compose.yml    # the whole SQL stack (run `docker compose` HERE)
+└── src/ ...              # the Express + Sequelize app
+client/                   # shared Angular UI, referenced as build: ../client
+```
+
+`docker compose` auto-discovers `docker-compose.yml` in the current
+directory, so `cd server-sql` then `docker compose up --build` just works —
+no `-f` flag needed. Build contexts inside the file are relative to
+`server-sql/` (`.` = the API/seed, `../client` = the UI). The default Mongo
+stack (root `docker-compose.yml` / `server/`) is left untouched.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Cause / Fix |
 |---|---|
-| `... server-sql\docker-compose.sql.yml: cannot find the file` | You ran it from `server-sql/`. `cd ~/Desktop/Mani` (repo root) and use `-f docker-compose.sql.yml`. |
-| `docker compose logs server-sql` is empty but status is `healthy` | Old image with the silent-in-production logger. App is fine; rebuild to get stdout logs: `docker compose -f docker-compose.sql.yml up --build`. |
-| `EADDRINUSE: :::5000` | Another backend (the Mongo `server`) is using port 5000. Stop it first. |
-| Port 5000/4200 already mapped | Don't run the Mongo stack and the SQL stack at the same time. |
+| `no configuration file provided: not found` | You ran `docker compose` from the wrong directory. `cd ~/Desktop/Mani/server-sql` first. |
+| `docker compose logs server-sql` is empty but status `healthy` | Old image with the silent-in-production logger. App is fine; rebuild for stdout logs: `docker compose up --build`. |
+| `EADDRINUSE: :::5000` | Another backend (the Mongo `server`, or the root Mongo Docker stack) is using port 5000. Stop it first. |
+| Ports 5000/4200 already mapped | Don't run the Mongo stack and the SQL stack at the same time. |
 | `seed-sql` shows "exited (0)" | Expected — it's a one-shot seed job, not a crash. |
-| API can't reach DB locally | MySQL not ready yet, or wrong `DB_*` in `server-sql/.env`. Wait for "ready for connections", recheck creds. |
+| API can't reach DB (local Node) | MySQL not ready, or wrong `DB_*` in `server-sql/.env`. Wait for "ready for connections", recheck creds. |
 
 ---
 
-## Which command should I usually run?
+## TL;DR
 
 ```bash
-cd ~/Desktop/Mani
-docker compose -f docker-compose.sql.yml up --build
+cd ~/Desktop/Mani/server-sql
+docker compose up --build
 ```
 
-That's the whole SQL stack (DB + seed + API + UI) in one command.
+Whole SQL stack (DB + seed + API + UI) in one command, from the
+`server-sql` folder.

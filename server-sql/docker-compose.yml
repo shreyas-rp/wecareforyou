@@ -1,14 +1,20 @@
 # =============================================================================
-# WeCareForYou — MySQL variant (separate from the default Mongo stack).
-# The original docker-compose.yml is untouched.
+# WeCareForYou — MySQL stack. Lives inside server-sql/ and is run from here:
 #
-#   docker compose -f docker-compose.sql.yml up --build
+#   cd server-sql
+#   docker compose up --build
 #
 #   UI  → http://localhost:4200
 #   API → http://localhost:5000/api/health   (Express + Sequelize + MySQL)
 #
-# Override the secret:  JWT_SECRET=xyz docker compose -f docker-compose.sql.yml up
+# Build contexts are relative to THIS folder:
+#   .          -> server-sql (API + seed image)
+#   ../client  -> the Angular app (shared, unchanged)
+# The default Mongo stack (root docker-compose.yml / server/) is untouched.
+# Override the secret:  JWT_SECRET=xyz docker compose up
 # =============================================================================
+
+name: wecare-sql
 
 services:
   db:
@@ -29,7 +35,7 @@ services:
 
   # One-shot: creates tables + populates everything. Idempotent.
   seed-sql:
-    build: ./server-sql
+    build: .
     container_name: wecare-seed-sql
     command: ["npm", "run", "seed:all"]
     environment:
@@ -47,7 +53,7 @@ services:
     restart: "no"
 
   server-sql:
-    build: ./server-sql
+    build: .
     container_name: wecare-server-sql
     restart: unless-stopped
     environment:
@@ -71,7 +77,7 @@ services:
         condition: service_completed_successfully
 
   client:
-    build: ./client
+    build: ../client
     container_name: wecare-client-sql
     restart: unless-stopped
     ports:

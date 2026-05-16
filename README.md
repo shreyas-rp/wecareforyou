@@ -46,19 +46,21 @@ secret with `JWT_SECRET=$(openssl rand -hex 32) docker compose up --build`.
 #### MySQL variant with Docker
 
 To run the SQL backend (`server-sql`) instead — MySQL + Sequelize, same UI
-and API — use the dedicated compose file (the Mongo one is untouched):
+and API — its Docker files live **inside `server-sql/`**, so run it from
+there (the root Mongo stack is untouched):
 
 ```bash
-docker compose -f docker-compose.sql.yml up --build
+cd server-sql
+docker compose up --build
 ```
 
 - UI  → <http://localhost:4200>
 - API → <http://localhost:5000/api/health>  (now Express + Sequelize + MySQL)
 
 Brings up MySQL 8 + auto-seed + API + UI. Data persists in the
-`mysql-data` volume. Tear down with
-`docker compose -f docker-compose.sql.yml down` (add `-v` to wipe the DB).
-Run only one stack at a time (both use ports 4200/5000).
+`mysql-data` volume. Tear down with `docker compose down` from
+`server-sql/` (add `-v` to wipe the DB). Run only one stack at a time
+(both use ports 4200/5000).
 
 ### Option B — Run locally with Node
 
