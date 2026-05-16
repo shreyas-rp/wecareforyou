@@ -5,16 +5,22 @@ online appointment booking, electronic medical records, doctor consultations
 with prescriptions, and administrative management.
 
 - **Frontend:** Angular 19 (standalone) + Bootstrap 5
-- **Backend:** Node.js + Express + Mongoose
-- **Database:** MongoDB (local **or** Atlas — your choice)
+- **Backend:** Node.js + Express — **two interchangeable variants:**
+  - `server/` — MongoDB + Mongoose (default)
+  - `server-sql/` — MySQL + Sequelize (same REST API, drop-in)
 - **Auth:** JWT, role-based (Admin / Doctor / Patient)
 
 ```
 .
-├── server/   # Express REST API
-├── client/   # Angular SPA
+├── server/      # Express REST API (MongoDB)
+├── server-sql/  # Express REST API (MySQL/Sequelize) — same endpoints
+├── client/      # Angular SPA (works with either backend, unchanged)
 └── README.md
 ```
+
+> Both backends expose the **identical API** (`server-sql` maps SQL `id` →
+> `_id`), so the Angular client is byte-for-byte the same regardless of
+> which one you run. Run **one backend at a time** on port 5000.
 
 ---
 
@@ -36,6 +42,23 @@ docker compose up --build
 Stop with `Ctrl+C`; `docker compose down` to remove containers (data
 persists in the `mongo-data` volume — add `-v` to wipe it). Set a real
 secret with `JWT_SECRET=$(openssl rand -hex 32) docker compose up --build`.
+
+#### MySQL variant with Docker
+
+To run the SQL backend (`server-sql`) instead — MySQL + Sequelize, same UI
+and API — use the dedicated compose file (the Mongo one is untouched):
+
+```bash
+docker compose -f docker-compose.sql.yml up --build
+```
+
+- UI  → <http://localhost:4200>
+- API → <http://localhost:5000/api/health>  (now Express + Sequelize + MySQL)
+
+Brings up MySQL 8 + auto-seed + API + UI. Data persists in the
+`mysql-data` volume. Tear down with
+`docker compose -f docker-compose.sql.yml down` (add `-v` to wipe the DB).
+Run only one stack at a time (both use ports 4200/5000).
 
 ### Option B — Run locally with Node
 
