@@ -1,0 +1,136 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="page-title">Manage Doctors</h3>
+    <p class="text-muted-2 mb-0">Add, update or remove doctors.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openAdd()">
+    <i class="bi bi-plus-circle"></i> Add New Doctor
+  </button>
+</div>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+<div class="wc-card p-4">
+  @if (doctors().length === 0) {
+  <p class="text-muted-2 mb-0">No doctors yet. Add the first one.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Name</th><th>Specialty</th><th>Experience</th>
+          <th>Qualification</th><th>Designation</th><th>Email</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of doctors(); track d._id) {
+        <tr>
+          <td class="fw-semibold">{{ d.name }}</td>
+          <td>{{ d.specialty }}</td>
+          <td>{{ d.experienceYears }} yrs</td>
+          <td>{{ d.qualification || '—' }}</td>
+          <td>{{ d.designation || '—' }}</td>
+          <td class="small">{{ d.userId?.email }}</td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(d)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="remove(d)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+}
+
+@if (showForm()) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ editingId() ? 'Update Doctor' : 'Add New Doctor' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="close()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Name</label>
+              <input class="form-control" formControlName="name"
+                     [class.is-invalid]="invalid('name')" />
+              @if (invalid('name')) {
+              <div class="text-danger small">Name is required.</div> }
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Specialty</label>
+              <select class="form-select" formControlName="specialty"
+                      [class.is-invalid]="invalid('specialty')">
+                <option value="">Select specialization</option>
+                @for (s of specializations(); track s._id) {
+                <option [value]="s.name">{{ s.name }}</option>
+                }
+              </select>
+              @if (invalid('specialty')) {
+              <div class="text-danger small">Specialty is required.</div> }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Experience (years)</label>
+              <input type="number" min="0" class="form-control"
+                     formControlName="experienceYears" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Qualification</label>
+              <input class="form-control" formControlName="qualification"
+                     placeholder="e.g. MS (OG)" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Designation</label>
+              <input class="form-control" formControlName="designation"
+                     placeholder="e.g. Consultant" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Login Email</label>
+              <input type="email" class="form-control" formControlName="email"
+                     [class.is-invalid]="invalid('email')" />
+              @if (invalid('email')) {
+              <div class="text-danger small">Enter a valid email.</div> }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">
+                Password {{ editingId() ? '(unchanged if blank)' : '' }}
+              </label>
+              <input type="text" class="form-control" formControlName="password"
+                     [class.is-invalid]="invalid('password')"
+                     placeholder="{{ editingId() ? 'leave blank' : 'Temp@123' }}" />
+              @if (invalid('password')) {
+              <div class="text-danger small">Password is required.</div> }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Phone</label>
+              <input class="form-control" formControlName="phone" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" (click)="close()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-2"></span> Saving…
+            } @else { Save }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}

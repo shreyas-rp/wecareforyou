@@ -1,0 +1,60 @@
+<h3 class="page-title">Admin Overview</h3>
+<p class="text-muted-2">Snapshot of activity across WeCareForYou.</p>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+<div class="row g-3">
+  <div class="col-md-4">
+    <a routerLink="/admin/doctors" class="text-decoration-none">
+      <div class="wc-card p-4 h-100">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div class="text-muted-2 small text-uppercase">Doctors</div>
+            <div class="display-6 fw-bold">{{ doctors() }}</div>
+          </div>
+          <i class="bi bi-person-badge fs-1 text-primary"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a routerLink="/admin/patients" class="text-decoration-none">
+      <div class="wc-card p-4 h-100">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div class="text-muted-2 small text-uppercase">Patients</div>
+            <div class="display-6 fw-bold">{{ patients() }}</div>
+          </div>
+          <i class="bi bi-people fs-1 text-primary"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a routerLink="/admin/appointments" class="text-decoration-none">
+      <div class="wc-card p-4 h-100">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div class="text-muted-2 small text-uppercase">Appointments</div>
+            <div class="display-6 fw-bold">{{ appointments() }}</div>
+          </div>
+          <i class="bi bi-calendar2-week fs-1 text-primary"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-6">
+    <div class="wc-card p-4">
+      <div class="text-muted-2 small text-uppercase">Pending Requests</div>
+      <div class="h2 fw-bold text-warning mb-0">{{ pending() }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="wc-card p-4">
+      <div class="text-muted-2 small text-uppercase">Completed Consultations</div>
+      <div class="h2 fw-bold text-success mb-0">{{ completed() }}</div>
+    </div>
+  </div>
+</div>
+}

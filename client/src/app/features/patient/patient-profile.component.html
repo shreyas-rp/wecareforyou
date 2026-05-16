@@ -1,0 +1,48 @@
+<h3 class="page-title">My Profile</h3>
+<p class="text-muted-2">Keep your personal information and medical history up to date.</p>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+<div class="wc-card p-4" style="max-width: 720px;">
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input class="form-control" formControlName="fullName"
+               [class.is-invalid]="invalid('fullName')" />
+        @if (invalid('fullName')) {
+        <div class="text-danger small">Full name is required.</div> }
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" formControlName="dateOfBirth" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Gender</label>
+        <select class="form-select" formControlName="gender">
+          <option value="">Select</option>
+          <option>Male</option><option>Female</option><option>Other</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Mobile Number</label>
+        <input class="form-control" formControlName="contactNumber"
+               [class.is-invalid]="invalid('contactNumber')" />
+        @if (invalid('contactNumber')) {
+        <div class="text-danger small">Enter a valid 10-digit number.</div> }
+      </div>
+      <div class="col-12">
+        <label class="form-label">Medical History</label>
+        <textarea rows="4" class="form-control" formControlName="medicalHistory"
+                  placeholder="Allergies, chronic conditions, past surgeries…"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit" [disabled]="saving()">
+      @if (saving()) {
+      <span class="spinner-border spinner-border-sm me-2"></span> Saving…
+      } @else { Save Changes }
+    </button>
+  </form>
+</div>
+}

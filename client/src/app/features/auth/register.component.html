@@ -1,0 +1,95 @@
+<div class="auth-shell">
+  <div class="auth-card wide">
+    <div class="text-center mb-4">
+      <div class="wc-logo lg justify-content-center">
+        <i class="bi bi-heart-pulse-fill"></i> WeCareForYou
+      </div>
+      <p class="text-muted-2 mt-2 mb-0">Create your patient account</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="name">Full Name</label>
+          <input id="name" type="text" class="form-control" formControlName="name"
+                 [class.is-invalid]="invalid('name')" placeholder="Jane Doe" />
+          @if (invalid('name')) {
+          <div class="text-danger small mt-1">
+            @if (form.get('name')?.errors?.['required']) { Name is required. }
+            @else { Name must be at least 3 characters. }
+          </div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="email">Email</label>
+          <input id="email" type="email" class="form-control" formControlName="email"
+                 [class.is-invalid]="invalid('email')" placeholder="you@example.com" />
+          @if (invalid('email')) {
+          <div class="text-danger small mt-1">Enter a valid email address.</div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="password">Password</label>
+          <input id="password" type="password" class="form-control" formControlName="password"
+                 [class.is-invalid]="invalid('password')" placeholder="Create a strong password" />
+          <app-password-strength [password]="passwordValue" />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" type="password" class="form-control"
+                 formControlName="confirmPassword"
+                 [class.is-invalid]="invalid('confirmPassword') || (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched)"
+                 placeholder="Re-enter your password" />
+          @if (form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) {
+          <div class="text-danger small mt-1">Passwords do not match.</div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="contactNumber">Mobile Number</label>
+          <input id="contactNumber" type="tel" class="form-control"
+                 formControlName="contactNumber"
+                 [class.is-invalid]="invalid('contactNumber')" placeholder="10-digit mobile" />
+          @if (invalid('contactNumber')) {
+          <div class="text-danger small mt-1">Mobile number must be 10 digits.</div>
+          }
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label" for="dateOfBirth">Date of Birth</label>
+          <input id="dateOfBirth" type="date" class="form-control" formControlName="dateOfBirth" />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label" for="gender">Gender</label>
+          <select id="gender" class="form-select" formControlName="gender">
+            <option value="">Select</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label" for="medicalHistory">Brief Medical History (optional)</label>
+          <textarea id="medicalHistory" rows="2" class="form-control"
+                    formControlName="medicalHistory"
+                    placeholder="Allergies, chronic conditions, past surgeries…"></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary w-100 mt-4" type="submit" [disabled]="loading()">
+        @if (loading()) {
+        <span class="spinner-border spinner-border-sm me-2"></span> Creating account…
+        } @else { Register }
+      </button>
+    </form>
+
+    <p class="text-center text-muted-2 small mt-4 mb-0">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
+</div>

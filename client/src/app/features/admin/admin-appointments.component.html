@@ -1,0 +1,121 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="page-title">Manage Appointments</h3>
+    <p class="text-muted-2 mb-0">View and reschedule appointments across all doctors.</p>
+  </div>
+  <select class="form-select w-auto" [(ngModel)]="statusFilter">
+    <option value="">All statuses</option>
+    <option value="requested">Requested</option>
+    <option value="confirmed">Confirmed</option>
+    <option value="rescheduled">Rescheduled</option>
+    <option value="completed">Completed</option>
+    <option value="rejected">Rejected</option>
+    <option value="cancelled">Cancelled</option>
+  </select>
+</div>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+<div class="wc-card p-4">
+  @if (filtered.length === 0) {
+  <p class="text-muted-2 mb-0">No appointments to show.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th>
+          <th>Nature</th><th>Status</th><th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of filtered; track a._id) {
+        <tr [class.row-upcoming]="a.status === 'confirmed' || a.status === 'requested' || a.status === 'rescheduled'">
+          <td class="fw-semibold">{{ patientName(a) }}</td>
+          <td>{{ doctorName(a) }}</td>
+          <td>{{ a.preferredDate | date: 'mediumDate' }}</td>
+          <td>{{ a.preferredTime }}</td>
+          <td class="small">{{ a.natureOfVisit }}</td>
+          <td><span class="badge-status s-{{ a.status }} text-capitalize">{{ a.status }}</span></td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-secondary me-1" (click)="openView(a)">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-primary"
+                    (click)="openReschedule(a)"
+                    [disabled]="a.status === 'completed'">
+              <i class="bi bi-arrow-repeat"></i> Reschedule
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+}
+
+@if (rescheduleTarget(); as a) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reschedule Appointment</h5>
+        <button type="button" class="btn-close" (click)="closeReschedule()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted-2 small">
+          {{ patientName(a) }} with {{ doctorName(a) }}
+        </p>
+        <div class="mb-3">
+          <label class="form-label">New Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newDate" />
+        </div>
+        <div class="mb-1">
+          <label class="form-label">New Time</label>
+          <input type="time" class="form-control" [(ngModel)]="newTime" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" (click)="closeReschedule()">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmReschedule()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}
+
+@if (viewTarget(); as a) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Appointment Details</h5>
+        <button type="button" class="btn-close" (click)="closeView()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><strong>Patient:</strong> {{ patientName(a) }}</div>
+          <div class="col-md-6"><strong>Doctor:</strong> {{ doctorName(a) }}</div>
+          <div class="col-md-6"><strong>Contact:</strong> {{ a.contactNumber }}</div>
+          <div class="col-md-6"><strong>Date:</strong> {{ a.preferredDate | date: 'mediumDate' }} {{ a.preferredTime }}</div>
+          <div class="col-md-6"><strong>Nature of Visit:</strong> {{ a.natureOfVisit }}</div>
+          <div class="col-md-6"><strong>Status:</strong> <span class="text-capitalize">{{ a.status }}</span></div>
+          <div class="col-12"><strong>Symptoms:</strong> {{ a.symptomsDescription }}</div>
+          @if (a.consultation?.diagnosis) {
+          <div class="col-12"><strong>Diagnosis:</strong> {{ a.consultation?.diagnosis }}</div>
+          <div class="col-12"><strong>Treatment Plan:</strong> {{ a.consultation?.treatmentPlan }}</div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="closeView()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}

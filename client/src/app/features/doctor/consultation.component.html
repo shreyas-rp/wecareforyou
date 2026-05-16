@@ -1,0 +1,131 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="page-title mb-0">Patient Consultation</h3>
+  <a routerLink="/doctor" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+@if (!loading() && !appointment()) {
+<p class="text-muted-2">Appointment not found.</p>
+}
+@if (appointment(); as a) {
+
+<div class="wc-card p-3 mb-4">
+  <div class="row g-2 small">
+    <div class="col-md-3"><strong>Patient:</strong> {{ patientName() }}</div>
+    <div class="col-md-3"><strong>Contact:</strong> {{ a.contactNumber }}</div>
+    <div class="col-md-3"><strong>Date:</strong> {{ a.preferredDate | date: 'mediumDate' }} {{ a.preferredTime }}</div>
+    <div class="col-md-3"><strong>Visit:</strong> {{ a.natureOfVisit }}</div>
+    <div class="col-12"><strong>Reported symptoms:</strong> {{ a.symptomsDescription }}</div>
+  </div>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="wc-card p-4 mb-4">
+    <h6 class="mb-3">Current Symptoms & Concerns</h6>
+    <textarea rows="2" class="form-control" formControlName="currentSymptoms"
+              [class.is-invalid]="invalid('currentSymptoms')"
+              placeholder="Document the patient's current symptoms…"></textarea>
+    @if (invalid('currentSymptoms')) {
+    <div class="text-danger small mt-1">This field is required.</div> }
+
+    <h6 class="mb-2 mt-4">Physical Examination</h6>
+    <textarea rows="2" class="form-control" formControlName="physicalExamination"
+              [class.is-invalid]="invalid('physicalExamination')"
+              placeholder="Vital signs, appearance, visible symptoms…"></textarea>
+    @if (invalid('physicalExamination')) {
+    <div class="text-danger small mt-1">This field is required.</div> }
+
+    <h6 class="mb-2 mt-4">Treatment Plan</h6>
+    <textarea rows="2" class="form-control" formControlName="treatmentPlan"
+              [class.is-invalid]="invalid('treatmentPlan')"
+              placeholder="Recommended treatment / advice…"></textarea>
+    @if (invalid('treatmentPlan')) {
+    <div class="text-danger small mt-1">This field is required.</div> }
+
+    <h6 class="mb-2 mt-4">Diagnosis</h6>
+    <input class="form-control" formControlName="diagnosis"
+           [class.is-invalid]="invalid('diagnosis')"
+           placeholder="Final diagnosis" />
+    @if (invalid('diagnosis')) {
+    <div class="text-danger small mt-1">Diagnosis is required.</div> }
+  </div>
+
+  <div class="wc-card p-4 mb-4">
+    <h6 class="mb-3">Recommended Medical Tests</h6>
+    <div class="row">
+      @for (t of tests(); track t._id) {
+      <div class="col-md-4 col-sm-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [id]="'t' + t._id"
+                 [checked]="isTestSelected(t.name)"
+                 (change)="toggleTest(t.name, $any($event.target).checked)" />
+          <label class="form-check-label small" [for]="'t' + t._id">{{ t.name }}</label>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="wc-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0">Prescription</h6>
+      <button type="button" class="btn btn-sm btn-outline-primary" (click)="addPrescription()">
+        <i class="bi bi-plus-lg"></i> Add Medicine
+      </button>
+    </div>
+
+    <div formArrayName="prescriptions">
+      @for (row of prescriptions.controls; track $index; let i = $index) {
+      <div class="row g-2 align-items-end mb-2 pb-2 border-bottom" [formGroupName]="i">
+        <div class="col-md-4">
+          <label class="form-label small">Medicine</label>
+          <select class="form-select" formControlName="medicineName">
+            <option value="">Select medicine</option>
+            @for (m of medicines(); track m._id) {
+            <option [value]="m.name + (m.strength && m.strength !== '-' ? ' ' + m.strength : '')">
+              {{ m.name }}{{ m.strength && m.strength !== '-' ? ' ' + m.strength : '' }}
+            </option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">Dosage (M-N-N)</label>
+          <input class="form-control" formControlName="dosage" placeholder="e.g. 0-0-1" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Timing</label>
+          <select class="form-select" formControlName="timing">
+            <option value="AF">After Food</option>
+            <option value="BF">Before Food</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Notes</label>
+          <input class="form-control" formControlName="notes" placeholder="optional" />
+        </div>
+        <div class="col-md-1 text-end">
+          <button type="button" class="btn btn-sm btn-outline-danger"
+                  (click)="removePrescription(i)" [disabled]="prescriptions.length === 1">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+    <small class="text-muted-2">
+      Dosage uses Morning-Noon-Night format (e.g. <strong>1-0-1</strong>),
+      with AF = After Food, BF = Before Food.
+    </small>
+  </div>
+
+  <button class="btn btn-primary" type="submit" [disabled]="saving()">
+    @if (saving()) {
+    <span class="spinner-border spinner-border-sm me-2"></span> Saving…
+    } @else { Save Consultation & Mark Completed }
+  </button>
+</form>
+}

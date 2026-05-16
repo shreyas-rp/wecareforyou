@@ -1,0 +1,164 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="page-title">My Dashboard</h3>
+    <p class="text-muted-2 mb-0">Track your appointments and consultations.</p>
+  </div>
+  <a routerLink="/patient/book" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> Book Appointment
+  </a>
+</div>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+
+<!-- Upcoming appointments -->
+<div class="wc-card p-4 mb-4">
+  <h5 class="mb-3"><i class="bi bi-calendar-check text-success"></i> Upcoming Appointments</h5>
+  @if (upcoming().length === 0) {
+  <p class="text-muted-2 mb-0">No upcoming appointments. Book one to get started.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Doctor</th><th>Specialty</th><th>Date</th><th>Time</th>
+          <th>Status</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of upcoming(); track a._id) {
+        <tr class="row-upcoming">
+          <td class="fw-semibold">{{ doctorName(a) }}</td>
+          <td>{{ doctorSpecialty(a) }}</td>
+          <td>{{ a.preferredDate | date: 'mediumDate' }}</td>
+          <td>{{ a.preferredTime }}</td>
+          <td><span class="badge-status s-{{ a.status }} text-capitalize">{{ a.status }}</span></td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary" (click)="openReschedule(a)">
+              <i class="bi bi-arrow-repeat"></i> Reschedule
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+
+<!-- Completed consultations -->
+<div class="wc-card p-4">
+  <h5 class="mb-3"><i class="bi bi-clipboard2-pulse text-primary"></i> Completed Consultations</h5>
+  @if (completed().length === 0) {
+  <p class="text-muted-2 mb-0">No completed consultations yet.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Date of Appointment</th><th>Doctor</th>
+          <th>Treatment / Diagnosis</th><th class="text-end">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of completed(); track a._id) {
+        <tr>
+          <td>{{ a.preferredDate | date: 'mediumDate' }}</td>
+          <td class="fw-semibold">{{ doctorName(a) }}</td>
+          <td>{{ a.consultation?.diagnosis || a.consultation?.treatmentPlan || '—' }}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary" (click)="openView(a)">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+}
+
+<!-- Reschedule modal -->
+@if (rescheduleTarget(); as a) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reschedule Appointment</h5>
+        <button type="button" class="btn-close" (click)="closeReschedule()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted-2 small">With {{ doctorName(a) }} ({{ doctorSpecialty(a) }})</p>
+        <div class="mb-3">
+          <label class="form-label">New Date</label>
+          <input type="date" class="form-control" [(ngModel)]="newDate" />
+        </div>
+        <div class="mb-1">
+          <label class="form-label">New Time</label>
+          <input type="time" class="form-control" [(ngModel)]="newTime" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" (click)="closeReschedule()">Cancel</button>
+        <button class="btn btn-primary" (click)="confirmReschedule()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}
+
+<!-- Prescription / consultation detail modal -->
+@if (viewTarget(); as a) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Consultation Summary</h5>
+        <button type="button" class="btn-close" (click)="closeView()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6"><strong>Doctor:</strong> {{ doctorName(a) }}</div>
+          <div class="col-md-6"><strong>Date:</strong> {{ a.preferredDate | date: 'mediumDate' }}</div>
+          <div class="col-md-6"><strong>Diagnosis:</strong> {{ a.consultation?.diagnosis || '—' }}</div>
+          <div class="col-md-6"><strong>Symptoms:</strong> {{ a.consultation?.currentSymptoms || '—' }}</div>
+          <div class="col-12"><strong>Physical Examination:</strong> {{ a.consultation?.physicalExamination || '—' }}</div>
+          <div class="col-12"><strong>Treatment Plan:</strong> {{ a.consultation?.treatmentPlan || '—' }}</div>
+        </div>
+
+        <h6>Recommended Tests</h6>
+        @if (a.consultation?.recommendedTests?.length) {
+        <ul>
+          @for (t of a.consultation?.recommendedTests; track t) { <li>{{ t }}</li> }
+        </ul>
+        } @else { <p class="text-muted-2">None.</p> }
+
+        <h6>Prescription</h6>
+        @if (a.consultation?.prescriptions?.length) {
+        <table class="table table-sm">
+          <thead><tr><th>Medicine</th><th>Dosage</th><th>Timing</th><th>Notes</th></tr></thead>
+          <tbody>
+            @for (p of a.consultation?.prescriptions; track p.medicineName) {
+            <tr>
+              <td>{{ p.medicineName }}</td>
+              <td>{{ p.dosage }}</td>
+              <td>{{ p.timing === 'AF' ? 'After Food' : 'Before Food' }}</td>
+              <td>{{ p.notes || '—' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        } @else { <p class="text-muted-2 mb-0">No medicines prescribed.</p> }
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="closeView()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}

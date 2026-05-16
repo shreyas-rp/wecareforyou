@@ -1,0 +1,132 @@
+<h3 class="page-title">Doctor Dashboard</h3>
+<p class="text-muted-2">Manage your appointment schedule and patient consultations.</p>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+
+<!-- Upcoming -->
+<div class="wc-card p-4 mb-4">
+  <h5 class="mb-3"><i class="bi bi-calendar-week text-success"></i> Upcoming Appointments</h5>
+  @if (upcoming().length === 0) {
+  <p class="text-muted-2 mb-0">No upcoming appointments.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Patient</th><th>Contact No.</th><th>Symptoms</th>
+          <th>Date</th><th>Time</th><th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of upcoming(); track a._id) {
+        <tr class="row-upcoming">
+          <td class="fw-semibold">{{ patientName(a) }}</td>
+          <td>{{ a.contactNumber }}</td>
+          <td class="small">{{ a.symptomsDescription }}</td>
+          <td>{{ a.preferredDate | date: 'mediumDate' }}</td>
+          <td>{{ a.preferredTime }}</td>
+          <td><span class="badge-status s-{{ a.status }} text-capitalize">{{ a.status }}</span></td>
+          <td class="text-end text-nowrap">
+            @if (a.status === 'requested') {
+            <button class="btn btn-sm btn-success me-1" (click)="act(a, 'confirm')">
+              <i class="bi bi-check-lg"></i> Confirm
+            </button>
+            }
+            <a class="btn btn-sm btn-primary me-1" [routerLink]="['/doctor/consult', a._id]">
+              <i class="bi bi-clipboard2-pulse"></i> Consult
+            </a>
+            <button class="btn btn-sm btn-outline-danger me-1" (click)="act(a, 'reject')">
+              Reject
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="act(a, 'cancel')">
+              Cancel
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+
+<!-- Completed -->
+<div class="wc-card p-4">
+  <h5 class="mb-3"><i class="bi bi-clipboard2-check text-primary"></i> Completed Appointments</h5>
+  @if (completed().length === 0) {
+  <p class="text-muted-2 mb-0">No completed appointments yet.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Patient</th><th>Contact No.</th><th>Symptoms</th>
+          <th>Date</th><th>Diagnosis</th><th class="text-end">Prescription</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of completed(); track a._id) {
+        <tr>
+          <td class="fw-semibold">{{ patientName(a) }}</td>
+          <td>{{ a.contactNumber }}</td>
+          <td class="small">{{ a.symptomsDescription }}</td>
+          <td>{{ a.preferredDate | date: 'mediumDate' }}</td>
+          <td>{{ a.consultation?.diagnosis || '—' }}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary" (click)="openView(a)">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+}
+
+@if (viewTarget(); as a) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Consultation — {{ patientName(a) }}</h5>
+        <button type="button" class="btn-close" (click)="closeView()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6"><strong>Diagnosis:</strong> {{ a.consultation?.diagnosis || '—' }}</div>
+          <div class="col-md-6"><strong>Symptoms:</strong> {{ a.consultation?.currentSymptoms || '—' }}</div>
+          <div class="col-12"><strong>Physical Examination:</strong> {{ a.consultation?.physicalExamination || '—' }}</div>
+          <div class="col-12"><strong>Treatment Plan:</strong> {{ a.consultation?.treatmentPlan || '—' }}</div>
+        </div>
+        <h6>Recommended Tests</h6>
+        @if (a.consultation?.recommendedTests?.length) {
+        <ul>@for (t of a.consultation?.recommendedTests; track t) { <li>{{ t }}</li> }</ul>
+        } @else { <p class="text-muted-2">None.</p> }
+        <h6>Prescription</h6>
+        @if (a.consultation?.prescriptions?.length) {
+        <table class="table table-sm">
+          <thead><tr><th>Medicine</th><th>Dosage</th><th>Timing</th><th>Notes</th></tr></thead>
+          <tbody>
+            @for (p of a.consultation?.prescriptions; track p.medicineName) {
+            <tr><td>{{ p.medicineName }}</td><td>{{ p.dosage }}</td>
+              <td>{{ p.timing === 'AF' ? 'After Food' : 'Before Food' }}</td>
+              <td>{{ p.notes || '—' }}</td></tr>
+            }
+          </tbody>
+        </table>
+        } @else { <p class="text-muted-2 mb-0">No medicines prescribed.</p> }
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="closeView()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}

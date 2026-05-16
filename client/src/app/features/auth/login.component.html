@@ -1,0 +1,75 @@
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="text-center mb-4">
+      <div class="wc-logo lg justify-content-center">
+        <i class="bi bi-heart-pulse-fill"></i> WeCareForYou
+      </div>
+      <p class="text-muted-2 mt-2 mb-0">Sign in to manage your healthcare</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="email">Email</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+          <input
+            id="email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+            [class.is-invalid]="invalid('email')"
+            placeholder="you@example.com"
+            autocomplete="username"
+          />
+        </div>
+        @if (invalid('email')) {
+        <div class="text-danger small mt-1">
+          @if (form.get('email')?.errors?.['required']) { Email is required. }
+          @else { Enter a valid email address. }
+        </div>
+        }
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            [class.is-invalid]="invalid('password')"
+            placeholder="Your password"
+            autocomplete="current-password"
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          >
+            <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+          </button>
+        </div>
+        @if (invalid('password')) {
+        <div class="text-danger small mt-1">Password is required.</div>
+        }
+      </div>
+
+      <div class="d-flex justify-content-end mb-3">
+        <a routerLink="/forgot-password" class="small">Forgot password?</a>
+      </div>
+
+      <button class="btn btn-primary w-100" type="submit" [disabled]="loading()">
+        @if (loading()) {
+        <span class="spinner-border spinner-border-sm me-2"></span> Signing in…
+        } @else { Login }
+      </button>
+    </form>
+
+    <p class="text-center text-muted-2 small mt-4 mb-0">
+      New patient? <a routerLink="/register">Create an account</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+<h3 class="page-title">Book an Appointment</h3>
+<p class="text-muted-2">Find a doctor by specialization, then fill in your details.</p>
+
+<div class="row g-4">
+  <!-- Doctor search & list -->
+  <div class="col-lg-5">
+    <div class="wc-card p-4">
+      <h6 class="mb-3"><i class="bi bi-search"></i> Find a Doctor</h6>
+      <div class="mb-2">
+        <label class="form-label">Specialization</label>
+        <select class="form-select" [(ngModel)]="filterSpecialization" (change)="search()">
+          <option value="">All specializations</option>
+          @for (s of specializations(); track s._id) {
+          <option [value]="s.name">{{ s.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Search by name</label>
+        <div class="input-group">
+          <input class="form-control" [(ngModel)]="filterSearch"
+                 (keyup.enter)="search()" placeholder="Doctor name…" />
+          <button class="btn btn-outline-primary" (click)="search()">Go</button>
+        </div>
+      </div>
+
+      @if (loadingDoctors()) {
+      <div class="text-center py-4"><span class="spinner-border text-primary"></span></div>
+      } @else if (doctors().length === 0) {
+      <p class="text-muted-2">No doctors match your search.</p>
+      } @else {
+      <div class="d-flex flex-column gap-2" style="max-height: 460px; overflow:auto;">
+        @for (d of doctors(); track d._id) {
+        <div class="border rounded-3 p-3 cursor-pointer"
+             [class.border-primary]="selectedDoctor()?._id === d._id"
+             (click)="pickDoctor(d)">
+          <div class="d-flex justify-content-between">
+            <strong>{{ d.name }}</strong>
+            @if (selectedDoctor()?._id === d._id) {
+            <span class="badge text-bg-success">Selected</span>
+            }
+          </div>
+          <div class="small text-muted-2">{{ d.specialty }}</div>
+          <div class="small">
+            {{ d.experienceYears }} yrs • {{ d.qualification }} •
+            {{ d.designation }}
+          </div>
+          @if (d.availability?.length) {
+          <div class="small text-muted-2 mt-1">
+            <i class="bi bi-clock"></i>
+            @for (slot of d.availability; track $index) {
+            <span>{{ slot.day }} {{ slot.from }}-{{ slot.to }}{{ $last ? '' : ', ' }}</span>
+            }
+          </div>
+          }
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Booking form -->
+  <div class="col-lg-7">
+    <div class="wc-card p-4">
+      <h6 class="mb-3"><i class="bi bi-clipboard-plus"></i> Appointment Details</h6>
+
+      @if (selectedDoctor(); as d) {
+      <div class="alert alert-success py-2">
+        Booking with <strong>{{ d.name }}</strong> — {{ d.specialty }}
+      </div>
+      } @else {
+      <div class="alert alert-warning py-2">Select a doctor from the list to continue.</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input class="form-control" formControlName="fullName"
+                   [class.is-invalid]="invalid('fullName')" />
+            @if (invalid('fullName')) {
+            <div class="text-danger small">Full name is required.</div> }
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" class="form-control" formControlName="dateOfBirth" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Gender</label>
+            <select class="form-select" formControlName="gender"
+                    [class.is-invalid]="invalid('gender')">
+              <option value="">Select</option>
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+            @if (invalid('gender')) {
+            <div class="text-danger small">Required.</div> }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Mobile Number</label>
+            <input class="form-control" formControlName="contactNumber"
+                   [class.is-invalid]="invalid('contactNumber')"
+                   placeholder="10-digit mobile" />
+            @if (invalid('contactNumber')) {
+            <div class="text-danger small">Enter a valid 10-digit number.</div> }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nature of Visit</label>
+            <select class="form-select" formControlName="natureOfVisit"
+                    [class.is-invalid]="invalid('natureOfVisit')">
+              <option value="">Select</option>
+              <option>General check-up</option>
+              <option>Specific medical issue</option>
+              <option>Follow-up consultation</option>
+              <option>Emergency concern</option>
+            </select>
+            @if (invalid('natureOfVisit')) {
+            <div class="text-danger small">Required.</div> }
+          </div>
+          <div class="col-12">
+            <label class="form-label">Symptoms / Health Concern</label>
+            <textarea rows="3" class="form-control" formControlName="symptomsDescription"
+                      [class.is-invalid]="invalid('symptomsDescription')"
+                      placeholder="Briefly describe your symptoms…"></textarea>
+            @if (invalid('symptomsDescription')) {
+            <div class="text-danger small">Please describe your concern.</div> }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Preferred Date</label>
+            <input type="date" class="form-control" formControlName="preferredDate"
+                   [class.is-invalid]="invalid('preferredDate')" />
+            @if (invalid('preferredDate')) {
+            <div class="text-danger small">Required.</div> }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Preferred Time</label>
+            <input type="time" class="form-control" formControlName="preferredTime"
+                   [class.is-invalid]="invalid('preferredTime')" />
+            @if (invalid('preferredTime')) {
+            <div class="text-danger small">Required.</div> }
+          </div>
+        </div>
+
+        <button class="btn btn-primary mt-4" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+          <span class="spinner-border spinner-border-sm me-2"></span> Requesting…
+          } @else { Request Appointment }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

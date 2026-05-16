@@ -1,0 +1,126 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="page-title">Manage Patients</h3>
+    <p class="text-muted-2 mb-0">Add, update or remove patient records.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openAdd()">
+    <i class="bi bi-plus-circle"></i> Add Patient
+  </button>
+</div>
+
+@if (loading()) {
+<div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+} @else {
+<div class="wc-card p-4">
+  @if (patients().length === 0) {
+  <p class="text-muted-2 mb-0">No patients yet.</p>
+  } @else {
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Full Name</th><th>Email</th><th>Contact</th>
+          <th>Gender</th><th>DOB</th><th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of patients(); track p._id) {
+        <tr>
+          <td class="fw-semibold">{{ p.fullName }}</td>
+          <td class="small">{{ p.userId?.email }}</td>
+          <td>{{ p.contactNumber || '—' }}</td>
+          <td>{{ p.gender || '—' }}</td>
+          <td>{{ p.dateOfBirth ? (p.dateOfBirth | date: 'mediumDate') : '—' }}</td>
+          <td class="text-end text-nowrap">
+            <button class="btn btn-sm btn-outline-primary me-1" (click)="openEdit(p)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="remove(p)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
+}
+
+@if (showForm()) {
+<div class="modal fade show d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ editingId() ? 'Update Patient' : 'Add Patient' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="close()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name</label>
+              <input class="form-control" formControlName="fullName"
+                     [class.is-invalid]="invalid('fullName')" />
+              @if (invalid('fullName')) {
+              <div class="text-danger small">Full name is required.</div> }
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Login Email</label>
+              <input type="email" class="form-control" formControlName="email"
+                     [class.is-invalid]="invalid('email')" />
+              @if (invalid('email')) {
+              <div class="text-danger small">Enter a valid email.</div> }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">
+                Password {{ editingId() ? '(unchanged if blank)' : '' }}
+              </label>
+              <input type="text" class="form-control" formControlName="password"
+                     [class.is-invalid]="invalid('password')"
+                     placeholder="{{ editingId() ? 'leave blank' : 'Temp@123' }}" />
+              @if (invalid('password')) {
+              <div class="text-danger small">Password is required.</div> }
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Contact Number</label>
+              <input class="form-control" formControlName="contactNumber"
+                     [class.is-invalid]="invalid('contactNumber')" />
+              @if (invalid('contactNumber')) {
+              <div class="text-danger small">Enter a valid 10-digit number.</div> }
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">DOB</label>
+              <input type="date" class="form-control" formControlName="dateOfBirth" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Gender</label>
+              <select class="form-select" formControlName="gender">
+                <option value="">—</option>
+                <option>Male</option><option>Female</option><option>Other</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Medical History</label>
+              <textarea rows="2" class="form-control"
+                        formControlName="medicalHistory"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" (click)="close()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-2"></span> Saving…
+            } @else { Save }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}
