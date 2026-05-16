@@ -20,6 +20,25 @@ with prescriptions, and administrative management.
 
 ## Quick start
 
+### Option A — Docker (easiest, nothing to install but Docker)
+
+Runs MongoDB + API + UI together. The database is auto-seeded.
+
+```bash
+git clone <your-repo-url> wecareforyou
+cd wecareforyou
+docker compose up --build
+```
+
+- UI  → <http://localhost:4200>
+- API → <http://localhost:5000/api/health>
+
+Stop with `Ctrl+C`; `docker compose down` to remove containers (data
+persists in the `mongo-data` volume — add `-v` to wipe it). Set a real
+secret with `JWT_SECRET=$(openssl rand -hex 32) docker compose up --build`.
+
+### Option B — Run locally with Node
+
 ```bash
 git clone <your-repo-url> wecareforyou
 cd wecareforyou
