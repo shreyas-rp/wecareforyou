@@ -30,19 +30,21 @@ const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(
-          ({ level, message, timestamp, stack }) =>
-            `${timestamp} ${level}: ${stack || message}`
-        )
-      ),
-    })
-  );
-}
+// Always log to stdout — essential for Docker / `docker compose logs`.
+// Colorized in dev; plain (no ANSI) in production.
+logger.add(
+  new winston.transports.Console({
+    format: winston.format.combine(
+      ...(process.env.NODE_ENV === 'production'
+        ? []
+        : [winston.format.colorize()]),
+      winston.format.printf(
+        ({ level, message, timestamp, stack }) =>
+          `${timestamp} ${level}: ${stack || message}`
+      )
+    ),
+  })
+);
 
 logger.stream = { write: (m) => logger.info(m.trim()) };
 
