@@ -19,7 +19,6 @@ name: wecare-sql
 services:
   db:
     image: mysql:8
-    container_name: wecare-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: wecare
@@ -36,7 +35,6 @@ services:
   # One-shot: creates tables + populates everything. Idempotent.
   seed-sql:
     build: .
-    container_name: wecare-seed-sql
     command: ["npm", "run", "seed:all"]
     environment:
       NODE_ENV: production
@@ -54,7 +52,6 @@ services:
 
   server-sql:
     build: .
-    container_name: wecare-server-sql
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -78,7 +75,6 @@ services:
 
   client:
     build: ../client
-    container_name: wecare-client-sql
     restart: unless-stopped
     ports:
       - "4200:80"

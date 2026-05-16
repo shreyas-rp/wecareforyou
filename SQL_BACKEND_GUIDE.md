@@ -151,6 +151,7 @@ stack (root `docker-compose.yml` / `server/`) is left untouched.
 | Symptom | Cause / Fix |
 |---|---|
 | `no configuration file provided: not found` | You ran `docker compose` from the wrong directory. `cd ~/Desktop/Mani/server-sql` first. |
+| `Conflict. The container name "/wecare-mysql" is already in use` | Stale containers from an older run. Remove them: `docker rm -f wecare-mysql wecare-server-sql wecare-client-sql wecare-seed-sql`, then `docker compose up --build`. (Fixed for fresh runs — containers are now auto-named per project.) |
 | `docker compose logs server-sql` is empty but status `healthy` | Old image with the silent-in-production logger. App is fine; rebuild for stdout logs: `docker compose up --build`. |
 | `EADDRINUSE: :::5000` | Another backend (the Mongo `server`, or the root Mongo Docker stack) is using port 5000. Stop it first. |
 | Ports 5000/4200 already mapped | Don't run the Mongo stack and the SQL stack at the same time. |
